@@ -23,21 +23,27 @@ from transformers import AutoTokenizer, BertForSequenceClassification, BertModel
 # Model loading
 # ---------------------------------------------------------------------------
 
-def load_target_model(device="cuda"):
+def load_target_model(device="cuda", model_name="ProsusAI/finbert"):
     """Load FinBERT (frozen, eval mode)."""
-    tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")
-    model = BertForSequenceClassification.from_pretrained("ProsusAI/finbert")
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = BertForSequenceClassification.from_pretrained(
+        model_name,
+        attn_implementation="eager",
+    )
     model.to(device).eval()
     for p in model.parameters():
         p.requires_grad_(False)
     return model, tokenizer
 
 
-def load_proxy_model(device="cuda"):
+def load_proxy_model(device="cuda",model_name="sentence-transformers/all-MiniLM-L6-v2"):
     """Load all-MiniLM-L6-v2 as a plain BertModel (frozen, eval mode)."""
-    name = "sentence-transformers/all-MiniLM-L6-v2"
+    name = model_name
     tokenizer = AutoTokenizer.from_pretrained(name)
-    model = BertModel.from_pretrained(name)
+    model = BertModel.from_pretrained(
+        name,
+        attn_implementation="eager",
+    )
     model.to(device).eval()
     for p in model.parameters():
         p.requires_grad_(False)
@@ -161,13 +167,19 @@ def get_logit_gap_readout(model, e_M_x, true_label):
 # Soft-token chart initialisation
 # ---------------------------------------------------------------------------
 
-def initial_soft_token_logits(input_ids, vocab_size, tau=10.0, device="cuda"):
+def initial_soft_token_logits(input_ids, vocab_size, tau=20.0, device="cuda"):
     """
     Build the base logit tensor logits_0 of shape (L, V) such that
     softmax(logits_0)[i] is a sharp one-hot at input_ids[i].
 
     input_ids : (L,) -- token IDs of the input sentence (already padded if needed).
-    tau       : sharpness; tau=10 gives softmax peak > 0.9999 at the target token.
+    tau       : sharpness of the one-hot approximation. The softmax mass on the
+                target token is exp(tau) / (exp(tau) + |V| - 1), so it depends on
+                the vocabulary size |V| (revision item 9). For BERT WordPiece
+                (|V| ~ 30522): tau=10 gives only ~0.42 mass on the target token
+                (far from one-hot, so the chart would be centred well away from
+                the text it claims to approximate), tau=15 gives ~0.99, and
+                tau=20 gives > 0.9999. Default is 20.0.
     """
     L = input_ids.shape[0]
     logits_0 = torch.zeros(L, vocab_size, device=device)

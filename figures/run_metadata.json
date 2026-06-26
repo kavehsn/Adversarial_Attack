@@ -1,0 +1,114 @@
+{
+  "models": {
+    "target": "ProsusAI/finbert",
+    "proxy": "sentence-transformers/all-MiniLM-L6-v2",
+    "shared_vocab_size": 30522,
+    "finbert_id2label": {
+      "0": "positive",
+      "1": "negative",
+      "2": "neutral"
+    }
+  },
+  "dataset": {
+    "name": "financial_phrasebank/sentences_allagree",
+    "split": "train",
+    "n_requested": 200,
+    "n_used": 190,
+    "seed": 42,
+    "filter": {
+      "n_selected_before_filter": 200,
+      "n_finbert_correct": 190,
+      "n_used_after_filter": 190,
+      "finbert_accuracy_on_selected": 0.95
+    }
+  },
+  "tokenisation": {
+    "truncation": true,
+    "padding": "max_length",
+    "max_len": 32
+  },
+  "chart": {
+    "q": 32,
+    "tau": 20.0,
+    "redraw_G": true,
+    "readout_normalised_to_unit_w": true
+  },
+  "regularisation": {
+    "nu_frac": 0.001,
+    "nu_scheme": "nu = nu_frac * tr(B) / q"
+  },
+  "eta_grids": {
+    "attackability": {
+      "min": 0.01,
+      "max": 1.0,
+      "n_eta": 40,
+      "scale": "raw proxy distance units"
+    },
+    "linearisation": {
+      "min": 0.001,
+      "max": 0.1,
+      "n_eta": 40,
+      "scale": "raw proxy distance units"
+    }
+  },
+  "cloud": {
+    "K_requested": 128,
+    "missing_cached_paraphrase_count": 0,
+    "n_cloud_records": 184,
+    "paraphrases_per_input_after_filter": {
+      "mean": 38.04891304347826,
+      "median": 40.0,
+      "min": 1,
+      "max": 40
+    },
+    "proxy_valid_mean_per_budget": {
+      "0.010": 0.0,
+      "0.258": 7.576086956521739,
+      "0.505": 35.78804347826087,
+      "0.752": 38.04347826086956,
+      "1.000": 38.04891304347826
+    },
+    "finite_search_K_grid": [
+      4,
+      8,
+      12,
+      18,
+      25,
+      40
+    ],
+    "oracle_K": 40
+  },
+  "degeneracy_cloud": {
+    "n": 184,
+    "n_sigma_zero": 0,
+    "n_sigma_near_zero": 0,
+    "n_degenerate_B": 0,
+    "sigma_w_min": 0.015423571287440771,
+    "sigma_w_median": 493.8635730282561,
+    "B_min_eigenvalue_median": 0.0029803317738696933,
+    "B_condition_number_median": 625.7244172214545
+  },
+  "trace_sensitivity_cloud": {
+    "T_bar_n": 49725.584534856964,
+    "trace_S_median": 25501.608576968287
+  },
+  "predictive_validity": {
+    "mode": "within_split",
+    "auc_at_label_budget": 0.8983496612449622,
+    "auc_at_label_budget_ci": [
+      0.816207757296467,
+      0.9557250244029594
+    ],
+    "auc_gamma_at_label_budget": 0.8121913957885601,
+    "auc_sigma_at_label_budget": 0.8773637482388394,
+    "spearman_Z_vs_budget": 0.4384586323054292,
+    "spearman_Z_ci": [
+      0.14244504830751423,
+      0.6612357762780587
+    ],
+    "spearman_gamma_vs_budget": 0.30719198333386755,
+    "spearman_sigma_vs_budget": -0.3219633596388088,
+    "label_budget": 0.3107503354549408,
+    "n_used": 183
+  }
+}

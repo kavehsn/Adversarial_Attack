@@ -1,5 +1,5 @@
 """
-Jacobian computation for the soft-token chart (Section 8.2).
+Jacobian computation for the soft-token chart
 
 The local coordinate u in R^q parameterises perturbations of the position-wise
 logit tensor through a fixed random projection:
@@ -21,8 +21,15 @@ import torch.func as func
 
 def make_random_projection(L, V, q, seed=0, device="cuda"):
     """
-    Build a fixed random projection G_flat in R^{(L*V) x q} with orthonormal
-    columns (drawn once, reused across all inputs in the experiment).
+    Build a random projection G_flat in R^{(L*V) x q} with orthonormal columns.
+
+    The original pipeline drew this ONCE and reused the same
+    q-dimensional subspace for every input, which is a confound (the measured
+    geometry then depends on one fixed random slice rather than on directions
+    adapted to each input). The fix is to redraw G per input -- pass a distinct
+    ``seed`` for each input (e.g. seed = base_seed + input_index), which main.py
+    now does by default via ``--redraw_G``. Holding G fixed is still available
+    for a sensitivity-to-the-draw report (run several base seeds).
 
     Returns: G_flat of shape (L*V, q) on `device`.
     """
@@ -72,7 +79,7 @@ def compute_jacobian_soft_token(forward_fn, logits_0, G_flat, q, attention_mask)
 def apply_perturbation_soft_token(forward_fn, logits_0, G_flat, u, attention_mask):
     """
     Evaluate forward_fn(logits_0 + (G_flat @ u).reshape(L, V), attention_mask)
-    without tracking gradients. Used by Experiment 2 (Section 8.2) to apply
+    without tracking gradients. Used by Experiment 2 to apply
     the linearised worst direction u* through the nonlinear E_M and measure
     the actual readout displacement.
     """
